@@ -1,6 +1,8 @@
 /**
- * mathit-ren.js v2.1 (Pure Syntax Highlighter)
- * 레이아웃 간섭 없음 / 토큰 컬러링 전용
+ * mathit-ren.js v3.0 (Ultimate Readability Edition)
+ * - Cognitive Hierarchy Color Palette (시각 피로도 최소화, 위계 명확화)
+ * - Auto Background Luminance Detection (부모 배경색 지능형 감지)
+ * - Zero Container Pollution (컨테이너 여백/그림자 간섭 0%)
  */
 (function (global, factory) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
@@ -14,71 +16,52 @@
   'use strict';
 
   // =========================================================================
-  // 1. 순수 토큰 색상 CSS (컨테이너 여백/그림자 일체 건드리지 않음)
+  // 1. 가독성 최적화 팔레트 (다크 / 라이트 배경 자동 대응)
   // =========================================================================
-  const PURE_STYLES = `
-/* 주석: 뮤트 그레이 (이탤릭) */
-.mr-comment     { color: #6a737d !important; font-style: italic; }
-/* @전역설정: 선명한 핑크/레드 */
-.mr-global      { color: #e36209 !important; font-weight: bold; }
-/* line:, poly: 등 렌더링 지시어: 블루 */
-.mr-directive   { color: #005cc5 !important; font-weight: bold; }
-/* solve, component, for 등 키워드: 퍼플 */
-.mr-keyword     { color: #6f42c1 !important; font-weight: bold; }
-/* A, B, Circle1 등 기하 객체: 오렌지 */
-.mr-geom        { color: #e36209 !important; font-weight: bold; }
-/* mid, isect, sin 등 내장 함수: 청록/시안 */
-.mr-builtin     { color: #0086b3 !important; }
-/* .x, .y 좌표 성분: 틸(Teal) */
-.mr-prop        { color: #005cc5 !important; }
-/* 파라미터명 (thick=, fill=): 다크 골드 */
-.mr-param       { color: #b07d00 !important; }
-/* 10mm, 45deg 단위 수치: 에메랄드 그린 */
-.mr-unit        { color: #22863a !important; font-weight: bold; }
-/* 일반 숫자: 블루 */
-.mr-number      { color: #005cc5 !important; }
-/* #3b82f6, red 등 색상: 마젠타/와인 */
-.mr-color       { color: #d73a49 !important; }
-/* #top, #1 등 해/필터 태그: 레드 (굵게) */
-.mr-tag         { color: #d73a49 !important; font-weight: bold; }
-/* 문자열: 그린 */
-.mr-string      { color: #22863a !important; }
-/* "$...$" LaTeX 수식: 골드/브라운 */
-.mr-latex       { color: #b07d00 !important; font-style: italic; }
-/* --, ---, =>, .. 등 특수 연산자: 퍼플 */
-.mr-operator    { color: #d73a49 !important; font-weight: bold; }
-/* solve 미지수 ?: 빨간색 강조 */
-.mr-solver      { color: #d73a49 !important; font-weight: 900; }
-/* (nw), (se) 8방위: 틸 */
-.mr-direction   { color: #0086b3 !important; font-weight: bold; }
-/* 괄호, 쉼표, 콜론 등: 기본 다크 그레이 */
-.mr-punctuation { color: #586069 !important; }
+  const PALETTE_STYLES = `
+/* ── [다크 배경 모드] (VS Code Dark Modern + GitHub Dark 베이스) ── */
+.mr-dark-env .mr-comment     { color: #8b949e !important; font-style: italic; }
+.mr-dark-env .mr-global      { color: #ff7b72 !important; font-weight: 700; }
+.mr-dark-env .mr-directive   { color: #79c0ff !important; font-weight: 700; } /* 1순위: 선명한 블루 */
+.mr-dark-env .mr-keyword     { color: #d2a8ff !important; font-weight: 700; }
+.mr-dark-env .mr-geom        { color: #ffa657 !important; font-weight: 600; } /* 2순위: 따뜻한 앰버 */
+.mr-dark-env .mr-builtin     { color: #7ee787 !important; }
+.mr-dark-env .mr-prop        { color: #a5d6ff !important; }
+.mr-dark-env .mr-param       { color: #c9d1d9 !important; font-weight: 400; } /* 3순위: 채도 낮춤 (피로 방지) */
+.mr-dark-env .mr-unit        { color: #56d364 !important; font-weight: 600; }
+.mr-dark-env .mr-number      { color: #79c0ff !important; }
+.mr-dark-env .mr-color       { color: #f2cc60 !important; }
+.mr-dark-env .mr-tag         { color: #ff7b72 !important; font-weight: 700; }
+.mr-dark-env .mr-string      { color: #a5d6ff !important; }
+.mr-dark-env .mr-latex       { color: #f2cc60 !important; font-style: italic; font-weight: 500; } /* 수식 강조 */
+.mr-dark-env .mr-operator    { color: #c9d1d9 !important; font-weight: 600; } /* 연산자는 튀지 않는 뉴트럴 */
+.mr-dark-env .mr-solver      { color: #ffffff !important; background: #da3633; font-weight: 900; padding: 1px 4px; border-radius: 3px; } /* ? 독점 강조 */
+.mr-dark-env .mr-direction   { color: #39c5bb !important; font-weight: 600; }
+.mr-dark-env .mr-punctuation { color: #6e7681 !important; }
 
-/* ── 다크 배경 부모를 위한 자동 대응 (선택적) ── */
-@media (prefers-color-scheme: dark) {
-  .mr-comment     { color: #768390 !important; }
-  .mr-global      { color: #f47067 !important; }
-  .mr-directive   { color: #54aeff !important; }
-  .mr-keyword     { color: #d2a8ff !important; }
-  .mr-geom        { color: #ffa657 !important; }
-  .mr-builtin     { color: #56d364 !important; }
-  .mr-prop        { color: #79c0ff !important; }
-  .mr-param       { color: #e3b341 !important; }
-  .mr-unit        { color: #7ee787 !important; }
-  .mr-number      { color: #79c0ff !important; }
-  .mr-color       { color: #f47067 !important; }
-  .mr-tag         { color: #f47067 !important; }
-  .mr-string      { color: #a5d6ff !important; }
-  .mr-latex       { color: #f2cc60 !important; }
-  .mr-operator    { color: #f47067 !important; }
-  .mr-solver      { color: #ff7b72 !important; font-weight: 900; }
-  .mr-direction   { color: #39c5bb !important; }
-  .mr-punctuation { color: #8b949e !important; }
-}
+/* ── [라이트 배경 모드] (Academic Paper + GitHub Light 베이스) ── */
+.mr-light-env .mr-comment     { color: #6e7781 !important; font-style: italic; }
+.mr-light-env .mr-global      { color: #cf222e !important; font-weight: 700; }
+.mr-light-env .mr-directive   { color: #0969da !important; font-weight: 700; } /* 1순위: 딥 블루 */
+.mr-light-env .mr-keyword     { color: #8250df !important; font-weight: 700; }
+.mr-light-env .mr-geom        { color: #bc4c00 !important; font-weight: 600; } /* 2순위: 딥 오렌지 */
+.mr-light-env .mr-builtin     { color: #116329 !important; }
+.mr-light-env .mr-prop        { color: #0550ae !important; }
+.mr-light-env .mr-param       { color: #57606a !important; font-weight: 400; } /* 3순위: 차분한 그레이 */
+.mr-light-env .mr-unit        { color: #1a7f37 !important; font-weight: 600; }
+.mr-light-env .mr-number      { color: #0550ae !important; }
+.mr-light-env .mr-color       { color: #9a6700 !important; }
+.mr-light-env .mr-tag         { color: #cf222e !important; font-weight: 700; }
+.mr-light-env .mr-string      { color: #0a3069 !important; }
+.mr-light-env .mr-latex       { color: #9a6700 !important; font-style: italic; font-weight: 600; }
+.mr-light-env .mr-operator    { color: #24292f !important; font-weight: 600; }
+.mr-light-env .mr-solver      { color: #ffffff !important; background: #cf222e; font-weight: 900; padding: 1px 4px; border-radius: 3px; }
+.mr-light-env .mr-direction   { color: #0086b3 !important; font-weight: 600; }
+.mr-light-env .mr-punctuation { color: #8c959f !important; }
 `;
 
   // =========================================================================
-  // 2. 어휘 사전 및 토큰 규칙
+  // 2. 어휘 사전 및 토큰 규칙 (완전판)
   // =========================================================================
   const DIRECTIVES = [
     'axis_break', 'right_ang', 'arrow_mark', 'regular_poly', 'tangent_line',
@@ -126,8 +109,33 @@
   ];
 
   // =========================================================================
-  // 3. 렌더러 코어
+  // 3. 지능형 환경 분석 (부모 배경색 밝기 계산기)
   // =========================================================================
+  function getEffectiveBgColor(element) {
+    let cur = element;
+    while (cur && cur !== document.body && cur !== document.documentElement) {
+      const bg = window.getComputedStyle(cur).backgroundColor;
+      if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
+        return bg;
+      }
+      cur = cur.parentElement;
+    }
+    return window.getComputedStyle(document.body).backgroundColor || 'rgb(255, 255, 255)';
+  }
+
+  function isDarkBackground(element) {
+    if (typeof window === 'undefined') return true;
+    const rgbStr = getEffectiveBgColor(element);
+    const m = rgbStr.match(/\d+/g);
+    if (!m || m.length < 3) return false;
+    const r = parseInt(m[0], 10);
+    const g = parseInt(m[1], 10);
+    const b = parseInt(m[2], 10);
+    // W3C 권장 상대 휘도(Luminance) 공식
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance < 0.5;
+  }
+
   function escapeHtml(str) {
     return str
       .replace(/&/g, '&amp;')
@@ -139,11 +147,11 @@
 
   function injectStyles() {
     if (typeof document === 'undefined') return;
-    const ID = 'mathit-ren-colors-only';
+    const ID = 'mathit-ren-pro-styles';
     if (!document.getElementById(ID)) {
       const el = document.createElement('style');
       el.id = ID;
-      el.textContent = PURE_STYLES;
+      el.textContent = PALETTE_STYLES;
       document.head.appendChild(el);
     }
   }
@@ -191,8 +199,12 @@
 
   function highlightElement(el) {
     if (!el) return;
-    // pre나 code의 CSS/클래스는 전혀 건드리지 않고, 내부 글자 색칠만 수행
     el.innerHTML = highlight(el.textContent || '');
+
+    // 부모의 실제 배경색을 실시간 분석하여 환경 클래스만 부착 (레이아웃 간섭 없음)
+    const isDark = isDarkBackground(el);
+    el.classList.remove('mr-dark-env', 'mr-light-env');
+    el.classList.add(isDark ? 'mr-dark-env' : 'mr-light-env');
   }
 
   function highlightAll() {
@@ -211,7 +223,6 @@
     });
   }
 
-  // DOM 로드 시 즉시 실행
   if (typeof window !== 'undefined') {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', highlightAll);

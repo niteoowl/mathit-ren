@@ -1,7 +1,7 @@
 /**
- * mathit-ren.js v1.0.0
- * Mathit v2.0 Syntax Highlighter (Standalone, Zero-Dependency)
- * https://github.com/mathit/mathit-ren
+ * mathit-ren.js v2.0 (Final Production)
+ * Perfect Syntax Highlighter for Mathit v2.0 Specification
+ * Zero-dependency, Self-contained (Automatic Theme Injection)
  */
 (function (global, factory) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
@@ -14,21 +14,19 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  // ==========================================
-  // 1. 내장 테마 CSS (자동 주입)
-  // ==========================================
-  const DEFAULT_STYLES = `
-/* MathitRen Container Base */
+  // =========================================================================
+  // 1. 임베디드 테마 CSS (다크 / 라이트 테마)
+  // =========================================================================
+  const STYLES = `
 pre.mathit-container {
   margin: 1.2em 0;
-  padding: 1.1em 1.3em;
+  padding: 1.2em 1.4em;
   border-radius: 8px;
   overflow-x: auto;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.92rem;
-  line-height: 1.6;
+  line-height: 1.65;
   tab-size: 4;
-  letter-spacing: 0.02em;
 }
 
 pre.mathit-container code {
@@ -38,149 +36,161 @@ pre.mathit-container code {
   border: none !important;
 }
 
-/* Dark Theme (Default) */
+/* ── Dark Theme (기본값: Catppuccin Mocha 베이스) ── */
 .mathit-dark, pre.mathit-container:not(.mathit-light) {
-  background-color: #1a1b26;
-  color: #c0caf5;
-  border: 1px solid #292e42;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  background-color: #1e1e2e;
+  color: #cdd6f4;
+  border: 1px solid #313244;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.mathit-dark .mr-comment      { color: #565f89; font-style: italic; }
-.mathit-dark .mr-global       { color: #f7768e; font-weight: 700; }
-.mathit-dark .mr-directive    { color: #7aa2f7; font-weight: 600; }
-.mathit-dark .mr-keyword      { color: #bb9af7; font-weight: 600; }
-.mathit-dark .mr-geom         { color: #ff9e64; font-weight: 600; }
-.mathit-dark .mr-builtin      { color: #7dcfff; }
-.mathit-dark .mr-param        { color: #e0af68; }
-.mathit-dark .mr-unit         { color: #2ac3de; font-weight: 600; }
-.mathit-dark .mr-number       { color: #ff9e64; }
-.mathit-dark .mr-color        { color: #b4f9f8; font-weight: 500; }
-.mathit-dark .mr-tag          { color: #f7768e; font-weight: 600; }
-.mathit-dark .mr-string       { color: #9ece6a; }
-.mathit-dark .mr-latex        { color: #e0af68; font-style: italic; background: rgba(224, 175, 104, 0.1); border-radius: 3px; padding: 0 2px; }
-.mathit-dark .mr-operator     { color: #bb9af7; font-weight: 600; }
-.mathit-dark .mr-solver       { color: #f7768e; font-weight: 800; background: rgba(247, 118, 142, 0.2); padding: 0 3px; border-radius: 3px; }
-.mathit-dark .mr-direction    { color: #73daca; font-weight: 600; }
-.mathit-dark .mr-punctuation  { color: #565f89; }
-.mathit-dark .mr-ident        { color: #c0caf5; }
+.mathit-dark .mr-comment     { color: #6c7086; font-style: italic; }
+.mathit-dark .mr-global      { color: #f38ba8; font-weight: 700; }
+.mathit-dark .mr-directive   { color: #89b4fa; font-weight: 600; }
+.mathit-dark .mr-keyword     { color: #cba6f7; font-weight: 600; }
+.mathit-dark .mr-geom        { color: #fab387; font-weight: 600; }
+.mathit-dark .mr-builtin     { color: #a6e3a1; font-weight: 500; }
+.mathit-dark .mr-prop        { color: #94e2d5; }
+.mathit-dark .mr-param       { color: #f9e2af; }
+.mathit-dark .mr-unit        { color: #74c7ec; font-weight: 600; }
+.mathit-dark .mr-number      { color: #fab387; }
+.mathit-dark .mr-color       { color: #f5c2e7; font-weight: 500; }
+.mathit-dark .mr-tag         { color: #f38ba8; font-weight: 700; }
+.mathit-dark .mr-string      { color: #a6adc8; }
+.mathit-dark .mr-latex       { color: #f9e2af; font-style: italic; background: rgba(249, 226, 175, 0.12); padding: 1px 3px; border-radius: 3px; }
+.mathit-dark .mr-operator    { color: #89dceb; font-weight: 600; }
+.mathit-dark .mr-solver      { color: #ffffff; background: #e64553; font-weight: 800; padding: 0 4px; border-radius: 3px; }
+.mathit-dark .mr-direction   { color: #94e2d5; font-weight: 600; }
+.mathit-dark .mr-punctuation { color: #6c7086; }
+.mathit-dark .mr-ident       { color: #cdd6f4; }
 
-/* Light Theme */
+/* ── Light Theme (수학 시험지/논문 스타일) ── */
 .mathit-light {
   background-color: #f8fafc;
   color: #1e293b;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .mathit-light .mr-comment     { color: #94a3b8; font-style: italic; }
 .mathit-light .mr-global      { color: #e11d48; font-weight: 700; }
 .mathit-light .mr-directive   { color: #2563eb; font-weight: 600; }
 .mathit-light .mr-keyword     { color: #7c3aed; font-weight: 600; }
-.mathit-light .mr-geom        { color: #d97706; font-weight: 600; }
-.mathit-light .mr-builtin     { color: #0284c7; }
-.mathit-light .mr-param       { color: #475569; }
+.mathit-light .mr-geom        { color: #ea580c; font-weight: 600; }
+.mathit-light .mr-builtin     { color: #0284c7; font-weight: 500; }
+.mathit-light .mr-prop        { color: #0f766e; }
+.mathit-light .mr-param       { color: #b45309; }
 .mathit-light .mr-unit        { color: #059669; font-weight: 600; }
 .mathit-light .mr-number      { color: #ea580c; }
-.mathit-light .mr-color       { color: #0d9488; }
-.mathit-light .mr-tag         { color: #be123c; font-weight: 600; }
-.mathit-light .mr-string      { color: #15803d; }
-.mathit-light .mr-latex       { color: #b45309; font-style: italic; background: rgba(180, 83, 9, 0.08); border-radius: 3px; padding: 0 2px; }
+.mathit-light .mr-color       { color: #be185d; font-weight: 500; }
+.mathit-light .mr-tag         { color: #be123c; font-weight: 700; }
+.mathit-light .mr-string      { color: #475569; }
+.mathit-light .mr-latex       { color: #b45309; font-style: italic; background: rgba(180, 83, 9, 0.08); padding: 1px 3px; border-radius: 3px; }
 .mathit-light .mr-operator    { color: #6366f1; font-weight: 600; }
-.mathit-light .mr-solver      { color: #e11d48; font-weight: 800; background: rgba(225, 29, 72, 0.12); padding: 0 3px; border-radius: 3px; }
+.mathit-light .mr-solver      { color: #ffffff; background: #e11d48; font-weight: 800; padding: 0 4px; border-radius: 3px; }
 .mathit-light .mr-direction   { color: #0891b2; font-weight: 600; }
 .mathit-light .mr-punctuation { color: #94a3b8; }
 .mathit-light .mr-ident       { color: #334155; }
 `;
 
-  // ==========================================
-  // 2. 토크나이저 규칙 정의 (우선순위 순서 엄수)
-  // ==========================================
-  const DIRECTIVE_NAMES = [
+  // =========================================================================
+  // 2. Mathit v2.0 정규식 어휘 사전 (보강 및 충돌 해결 완료)
+  // =========================================================================
+  
+  // 렌더링 지시어 목록
+  const DIRECTIVES = [
     'axis_break', 'right_ang', 'arrow_mark', 'regular_poly', 'tangent_line',
     'dist_normal', 'axis', 'ticks', 'grid', 'line', 'poly', 'circle',
     'ellipse', 'path', 'fill', 'shade', 'ang', 'tick', 'dim', 'dot',
     'draw', 'surface', 'field', 'tree', 'graph', 'label'
   ].join('|');
 
-  const BUILTIN_NAMES = [
+  // 내장 기하학/해석학/3D/통계 함수 (arc, cam, crosshatch, pi 추가 완료)
+  const BUILTINS = [
     'incenter', 'inradius', 'circumcenter', 'circumradius', 'centroid',
     'orthocenter', 'excenter', 'mid', 'on', 'ext', 'proj', 'reflect',
     'rot', 'bisect', 'isect', 'controls', 'between', 'under', 'riemann',
     'tangent_line', 'param', 'polar', 'regular_poly', 'cube', 'sphere',
     'cylinder', 'plane', 'dist_normal', 'vec', 'norm', 'dist', 'ang',
-    'sin', 'cos', 'tan', 'sqrt', 'rect', 'circle', 'poly'
+    'sin', 'cos', 'tan', 'sqrt', 'rect', 'circle', 'poly', 'arc',
+    'cam', 'crosshatch', 'pi'
   ].join('|');
 
+  // Mathit 표준 명명 색상 (Section 1)
   const NAMED_COLORS = [
     'red', 'blue', 'green', 'black', 'white', 'gray', 'orange', 'purple', 'cyan'
   ].join('|');
 
+  // 토큰 룰 매트릭스 (우선순위 철저 준수)
   const TOKEN_RULES = [
-    // 1. 주석
+    // 1. 단일행 주석 (최우선 배제)
     { type: 'comment', regex: /^\/\/[^\n]*/ },
 
-    // 2. 문자열 (LaTeX 및 일반 텍스트)
+    // 2. 문자열 및 인라인 LaTeX ("...$수식$...")
     { type: 'string', regex: /^"([^"\\]|\\.)*"/ },
 
-    // 3. 글로벌 설정 지시어 (@view, @3d, @canvas)
-    { type: 'global', regex: /^@(view|3d|canvas)\b/ },
+    // 3. 전역 설정 지시어 (@view, @3d, @canvas, @config 등)
+    { type: 'global', regex: /^@[a-zA-Z0-9_]+\b/ },
 
-    // 4. 해/위치 필터 태그 (#top, #bottom, #left, #right, #1, #2 등)
-    { type: 'tag', regex: /^#(top|bottom|left|right|\d+)\b/ },
+    // 4. 교점 해/위치 필터 태그 (#top, #bottom, #left, #right, #1, #2)
+    // ※ 6자리 Hex(#000000)와 충돌하지 않도록 태그 수치는 1~2자리 숫자로 제한
+    { type: 'tag', regex: /^#(top|bottom|left|right|\d{1,2})\b/ },
 
-    // 5. Hex 색상 및 투명도 리터럴 (#3b82f6, #red/20, #000000/50)
-    { type: 'color', regex: /^#([0-9a-fA-F]{3,8}|[a-zA-Z]+)(\/\d+)?\b/ },
+    // 5. Hex 및 투명도 색상 리터럴 (#3b82f6, #red/20, #000000/50, #gray/30)
+    { type: 'color', regex: /^#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4}|[a-zA-Z]+)(?:\/\d+)?\b/ },
 
-    // 6. 렌더링 지시어 및 컴포넌트 호출 (뒤에 ':'가 오는 식별자)
-    { type: 'directive', regex: new RegExp(`^(${DIRECTIVE_NAMES}|[A-Z][a-zA-Z0-9_]*)(?=\\s*:)`) },
+    // 6. 렌더링 지시어 및 컴포넌트 호출문 (콜론 바로 직전의 식별자)
+    { type: 'directive', regex: new RegExp(`^(${DIRECTIVES}|[A-Z][a-zA-Z0-9_]*)(?=\\s*:)`) },
 
-    // 7. 예약 키워드
+    // 7. 언어 제어 키워드
     { type: 'keyword', regex: /^(solve|component|for|in|step)\b/ },
 
-    // 8. 내장 기하 & 해석학 함수
-    { type: 'builtin', regex: new RegExp(`^(${BUILTIN_NAMES})\\b`) },
+    // 8. 내장 기하/해석/수학 함수
+    { type: 'builtin', regex: new RegExp(`^(${BUILTINS})\\b`) },
 
-    // 9. 리터럴 색상명
+    // 9. 독립된 명명 색상 리터럴 (color=red 등)
     { type: 'color', regex: new RegExp(`^(${NAMED_COLORS})\\b`) },
 
-    // 10. 8방위 배치 방향 태그 ((nw), (se) 등)
+    // 10. 8방위 배치 방향 태그 ((nw), (se), (c) 등)
     { type: 'direction', regex: /^\((c|n|s|e|w|ne|nw|se|sw)\)/ },
 
-    // 11. 파라미터 키 ('=' 직전에 오는 식별자)
+    // 11. 점 좌표 성분 프로퍼티 (.x, .y, .z)
+    { type: 'prop', regex: /^\.(x|y|z)\b/ },
+
+    // 12. 파라미터 이름 ('=' 바로 직전의 식별자)
     { type: 'param', regex: /^[a-zA-Z_][a-zA-Z0-9_]*(?=\s*=)/ },
 
-    // 12. 기하 객체 (대문자로 시작하는 식별자)
+    // 13. 기하 객체 (대문자로 시작하는 모든 식별자: A, P1, Circle1, Poly)
     { type: 'geom', regex: /^[A-Z][a-zA-Z0-9_]*/ },
 
-    // 13. 단위 수치 리터럴 (10mm, 45deg, 2pi 등)
+    // 14. 단위 결합 수치 리터럴 (10mm, 15pt, 20px, 45deg, 1.5rad, 2pi)
     { type: 'unit', regex: /^\b\d+(\.\d+)?(mm|pt|px|deg|rad|pi)\b/ },
 
-    // 14. 일반 수치 리터럴
+    // 15. 순수 수치 리터럴
     { type: 'number', regex: /^\b\d+(\.\d+)?\b/ },
 
-    // 15. solve 블록 전용 미지수 기호
+    // 16. solve 블록 전용 미지수 기호 (?)
     { type: 'solver', regex: /^\?/ },
 
-    // 16. 연산자 (특수 연산자 길이순 우선 매칭: --- -> -- -> 기타)
-    { type: 'operator', regex: /^(---|--|\+\+|\.\.|\->|=>|==|!=|<=|>=|[+\-*\/^=&|<>!])/ },
+    // 17. 특수 연산자 (우선순위: 네트워크 '---' -> 경로 '--' -> 증감/범위 '++','..' -> 람다/화살표)
+    { type: 'operator', regex: /^(---|--|\+\+|\.\.|\->|=>|==|!=|<=|>=|[-+*/^=&|<>!%~])/ },
 
-    // 17. 구분 기호
+    // 18. 구분 기호
     { type: 'punctuation', regex: /^[{}\[\](),;:]/ },
 
-    // 18. 일반 변수 / 스칼라 식별자 (소문자 시작)
+    // 19. 일반 스칼라 변수 및 사용자 정의 함수명 (소문자 시작)
     { type: 'ident', regex: /^[a-z_][a-zA-Z0-9_]*/ },
 
-    // 19. 공백 및 줄바꿈
+    // 20. 공백 및 개행
     { type: 'whitespace', regex: /^\s+/ },
 
-    // 20. 매칭되지 않은 임의의 문자
+    // 21. 기타 문자 안전 처리
     { type: 'unknown', regex: /^./ }
   ];
 
-  // ==========================================
-  // 3. 유틸리티 및 코어 렌더링 로직
-  // ==========================================
+  // =========================================================================
+  // 3. 파서 및 렌더러 코어
+  // =========================================================================
   function escapeHtml(str) {
     return str
       .replace(/&/g, '&amp;')
@@ -190,55 +200,51 @@ pre.mathit-container code {
       .replace(/'/g, '&#039;');
   }
 
-  function injectDefaultStyles() {
+  function injectStyles() {
     if (typeof document === 'undefined') return;
-    const styleId = 'mathit-ren-styles';
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = DEFAULT_STYLES;
-      document.head.appendChild(style);
+    const ID = 'mathit-ren-core-styles';
+    if (!document.getElementById(ID)) {
+      const el = document.createElement('style');
+      el.id = ID;
+      el.textContent = STYLES;
+      document.head.appendChild(el);
     }
   }
 
-  /**
-   * Mathit v2.0 코드를 파싱하여 하이라이트된 HTML 문자열 반환
-   */
   function highlight(code) {
     let cursor = 0;
     let html = '';
-    const length = code.length;
+    const len = code.length;
 
-    while (cursor < length) {
-      const remaining = code.slice(cursor);
+    while (cursor < len) {
+      const sub = code.slice(cursor);
       let matched = false;
 
       for (let i = 0; i < TOKEN_RULES.length; i++) {
         const rule = TOKEN_RULES[i];
-        const match = rule.regex.exec(remaining);
+        const m = rule.regex.exec(sub);
 
-        if (match) {
-          const rawToken = match[0];
-          cursor += rawToken.length;
+        if (m) {
+          const raw = m[0];
+          cursor += raw.length;
           matched = true;
 
           if (rule.type === 'whitespace') {
-            html += rawToken;
+            html += raw;
           } else if (rule.type === 'string') {
-            // LaTeX 수식($...$) 포함 여부에 따른 세부 스타일 분기
-            const isLatex = rawToken.includes('$');
-            const cls = isLatex ? 'mr-string mr-latex' : 'mr-string';
-            html += `<span class="${cls}">${escapeHtml(rawToken)}</span>`;
+            // LaTeX 수식 포함 여부에 따라 클래스 분기
+            const hasLatex = raw.includes('$');
+            const cls = hasLatex ? 'mr-string mr-latex' : 'mr-string';
+            html += `<span class="${cls}">${escapeHtml(raw)}</span>`;
           } else if (rule.type === 'unknown') {
-            html += escapeHtml(rawToken);
+            html += escapeHtml(raw);
           } else {
-            html += `<span class="mr-${rule.type}">${escapeHtml(rawToken)}</span>`;
+            html += `<span class="mr-${rule.type}">${escapeHtml(raw)}</span>`;
           }
           break;
         }
       }
 
-      // 안전 장치: 매칭 실패 시 1글자 전진
       if (!matched) {
         html += escapeHtml(code[cursor]);
         cursor++;
@@ -248,59 +254,44 @@ pre.mathit-container code {
     return html;
   }
 
-  /**
-   * 단일 DOM 요소를 하이라이트 처리
-   */
   function highlightElement(el) {
     if (!el) return;
-    const code = el.textContent || '';
-    el.innerHTML = highlight(code);
-    
-    // 부모 <pre>가 있다면 mathit 컨테이너 클래스 부여
+    el.innerHTML = highlight(el.textContent || '');
     const pre = el.closest('pre');
     if (pre && !pre.classList.contains('mathit-container')) {
       pre.classList.add('mathit-container');
     }
   }
 
-  /**
-   * 문서 내 모든 Mathit 블록 자동 감지 및 하이라이트
-   */
   function highlightAll() {
     if (typeof document === 'undefined') return;
-    injectDefaultStyles();
+    injectStyles();
 
-    const targets = document.querySelectorAll(
-      'pre code.language-mathit, code.language-mathit, pre.mathit code, pre.mathit, code.mathit'
-    );
+    const selector = 'pre code.language-mathit, code.language-mathit, pre.mathit code, pre.mathit, code.mathit';
+    const nodes = document.querySelectorAll(selector);
 
-    targets.forEach((el) => {
-      // pre 자체에 걸려있고 내부에 code 태그가 있는 중복 케이스 방지
-      if (el.tagName.toLowerCase() === 'pre' && el.querySelector('code')) {
+    nodes.forEach((node) => {
+      if (node.tagName.toLowerCase() === 'pre' && node.querySelector('code')) {
         return;
       }
-      highlightElement(el);
+      highlightElement(node);
     });
   }
 
-  /**
-   * 전역 테마 전환 ('dark' | 'light')
-   */
-  function setTheme(themeName) {
+  function setTheme(theme) {
     if (typeof document === 'undefined') return;
     const containers = document.querySelectorAll('.mathit-container');
-    containers.forEach((el) => {
-      if (themeName === 'light') {
-        el.classList.add('mathit-light');
-        el.classList.remove('mathit-dark');
+    containers.forEach((c) => {
+      if (theme === 'light') {
+        c.classList.add('mathit-light');
+        c.classList.remove('mathit-dark');
       } else {
-        el.classList.add('mathit-dark');
-        el.classList.remove('mathit-light');
+        c.classList.add('mathit-dark');
+        c.classList.remove('mathit-light');
       }
     });
   }
 
-  // DOM 로드 완료 시 자동 실행
   if (typeof window !== 'undefined') {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', highlightAll);
@@ -314,6 +305,6 @@ pre.mathit-container code {
     highlightElement: highlightElement,
     highlightAll: highlightAll,
     setTheme: setTheme,
-    injectStyles: injectDefaultStyles
+    injectStyles: injectStyles
   };
 });
